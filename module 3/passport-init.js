@@ -3,7 +3,9 @@
  */
 var LocalStrategy = require('passport-local').Strategy;
 var bcrypt = require('bcrypt-nodejs');
-
+var mongoose = require('mongoose');
+var User = mongoose.model('User');
+var Post = mongoose.model('Post');
 var users = {};
 module.exports = function(passport){
     passport.serializeUser(function(user,done){
@@ -19,15 +21,21 @@ module.exports = function(passport){
         passReqToCallback:true
     },
         function (req,username,password,done) {
-            if(!users[username]){
-                return done('user not found', false);
-            }
-            if(!isValidPassword(users[username], password))
-            {
-                return done('invalid Password', false);
-            }
-            console.log("login successful");
-            return done(null, users[username]);
+
+            User.findOne({username: username}, function (err, user) {
+                if (err) {
+                    return done(err, false);
+                }
+
+                if (!user) {
+                    return done('user ' + username + ' not found', false)
+
+                }
+                if (!isValidPassword(user, password)) {
+                    return done('incorrect password', false);
+                }
+                return done(null, user);
+            });
         }
     ));
 
@@ -35,13 +43,27 @@ module.exports = function(passport){
         passReqToCallback : true
     },
         function(req, username, password, done){
-        if(users[username]){
-            return done('username already taken', false);
-        }
-        users[username]={
-            username: username,
-            password: createHash(password)
-        };
+        Users.findOne({username: username}, function(err, user){
+          if(err){
+              return done(err, false);
+          }
+          if(user){
+              return done('username already taken', false);
+          }
+            user= new Users();
+            user.username= username;
+            user.password= createHash(password);
+            user.save(function(err,user){
+
+                if(err){
+                    return done(err,false);
+                }
+                console.log('successfully signed up user' +username);
+                return done(null, user);
+            });
+        });
+
+
             return done(null, users[username]);
         })
     );

@@ -9,7 +9,9 @@ var bodyParser = require('body-parser');
 
 var api = require('./routes/api');
 var authenticate = require('./routes/authenticate')(passport);
-
+var mongoose = require('mongoose');
+mongoose.connect("mongodb://localhost:27017/chirp-test");
+require('./models/models.js');
 var app = express();
 
 // view engine setup
@@ -28,7 +30,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
-
+require('./models/models.js');
 var initPassport = require('./passport-init');
 initPassport(passport);
 
