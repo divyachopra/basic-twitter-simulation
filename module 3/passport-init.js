@@ -4,17 +4,27 @@
 var LocalStrategy = require('passport-local').Strategy;
 var bcrypt = require('bcrypt-nodejs');
 var mongoose = require('mongoose');
-var User = mongoose.model('User');
-var Post = mongoose.model('Post');
+var Users = mongoose.model('User');
+var Posts = mongoose.model('Post');
 var users = {};
 module.exports = function(passport){
     passport.serializeUser(function(user,done){
-       console.log('seroalizing user:', user.username);
-       return done(null, user.username);
+       console.log('serializing user:', user._id);
+       return done(null, user._id);
     });
 
-    passport.deserializeUser(function(username, done){
-       return done(null, users[username]);
+    passport.deserializeUser(function(id, done){
+
+        Users.findById(id, function(err, user){
+           if(err){
+               return done(err, false);
+           }
+           if(!user){
+               return done('user not found', false);
+           }
+           return done(user, true);
+        });
+
     });
 
     passport.use('login', new LocalStrategy({
@@ -22,9 +32,10 @@ module.exports = function(passport){
     },
         function (req,username,password,done) {
 
-            User.findOne({username: username}, function (err, user) {
+            Users.findOne({username: username}, function (err, user) {
                 if (err) {
-                    return done(err, false);
+                    console.log('error'+err);
+                    return done(err);
                 }
 
                 if (!user) {
@@ -45,26 +56,29 @@ module.exports = function(passport){
         function(req, username, password, done){
         Users.findOne({username: username}, function(err, user){
           if(err){
-              return done(err, false);
+              console.log('Error in signup: '+ err);
+              return done(err);
           }
           if(user){
-              return done('username already taken', false);
+              console.log('username already taken', +username);
+              return done(null, false);
           }
-            user= new Users();
-            user.username= username;
-            user.password= createHash(password);
-            user.save(function(err,user){
+          else {
+              console.log('user does not exists');
+              var newUser = new Users();
+              newUser.username = username;
+              newUser.password = createHash(password);
+              newUser.save(function (err, user) {
 
-                if(err){
-                    return done(err,false);
-                }
-                console.log('successfully signed up user' +username);
-                return done(null, user);
-            });
+                  if (err) {
+                      console.log('Error in saving user: '+ err);
+                      throw err;
+                  }
+                  console.log('successfully signed up user' + newUser.username);
+                  return done(null, newUser);
+              });
+          }
         });
-
-
-            return done(null, users[username]);
         })
     );
 
