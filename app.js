@@ -11,11 +11,12 @@ var index = require('./routes/index');
 var api = require('./routes/api');
 var authenticate = require('./routes/authenticate')(passport);
 var mongoose = require('mongoose');
-if(process.env.DEV_ENV){
-    mongoose.connect('mongodb://localhost/chirp-test');
+if (process.env.DEV_ENV) {
+    //connect to mongodb local server
+    mongoose.connect("mongodb://localhost:27017/chirp-test"); //allows us to perform CRUD operations locally
 }
-else{
-    mongoose.connect('mongodb://divya:hello@ds117889.mlab.com:17889/chat-test');
+else {
+    mongoose.connect("mongodb://admin:admin@ds117889.mlab.com:17889/chat-test"); //on mongolab server
 }
 var app = express();
 
