@@ -11,7 +11,12 @@ var index = require('./routes/index');
 var api = require('./routes/api');
 var authenticate = require('./routes/authenticate')(passport);
 var mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost:27017/chirp-test");
+if(process.env.DEV_ENV){
+    mongoose.connect('mongodb://localhost/chirp-test');
+}
+else{
+    mongoose.connect('mongodb://divya:hello@ds117889.mlab.com:17889/chat-test');
+}
 var app = express();
 
 // view engine setup
