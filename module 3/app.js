@@ -6,14 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var passport = require('passport');
-var mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost:27017/chirp-test");
 require('./models/models');
 var index = require('./routes/index');
 var api = require('./routes/api');
 var authenticate = require('./routes/authenticate')(passport);
-
-
+var mongoose = require('mongoose');
+mongoose.connect("mongodb://localhost:27017/chirp-test");
 var app = express();
 
 // view engine setup
@@ -25,6 +23,7 @@ app.set('view engine', 'ejs');
 app.use(logger('dev'));
 app.use(session({
   secret:'super duper secret'
+
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

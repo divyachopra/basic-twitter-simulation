@@ -2,7 +2,7 @@
  * Created by Divya Chopra on 1/16/2017.
  */
 var mongoose =  require('mongoose');
-
+//var Schema = mongoose.Schema;
 var userSchema= new mongoose.Schema({
     username: String,
     password: String,

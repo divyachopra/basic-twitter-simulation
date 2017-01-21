@@ -1,23 +1,45 @@
 /**
  * Created by Divya Chopra on 1/14/2017.
  */
-var express = require('express');
-var router = express.Router();
 var mongoose = require('mongoose');
 var Post = mongoose.model('Post');
-router.use(function (req, res, next) {
-    if(req.method==="GET"){
+var express = require('express');
+var router = express.Router();
+function isAuthenticated (req, res, next) {
+    // if user is authenticated in the session, call the next() to call the next request handler
+    // Passport adds this method to request object. A middleware is allowed to add properties to
+    // request and response objects
+
+    //allow all get request methods
+    if(req.method === "GET"){
         return next();
     }
-
     if (req.isAuthenticated()){
         return next();
     }
 
     // if the user is not authenticated then redirect him to the login page
     return res.redirect('/#login');
-});
+};
+
+//Register the authentication middleware
+router.use('/posts', isAuthenticated);
+
 router.route('/posts')
+
+    .post(function(req,res){
+        var post = new Post();
+        console.log("Hello"+ req.body.text +" "+ req.body.created_by);
+        post.text = req.body.text;
+        post.created_by = req.body.created_by;
+        post.save(function(err,post){
+           if(err){
+               console.log('Error: ' + err);
+               return res.send(500,err);
+           }
+            return res.json(200,post);
+        });
+    })
 
     .get(function(req,res){
         console.log('debug get');
@@ -28,22 +50,9 @@ router.route('/posts')
             }
             return res.send(200,posts);
         });
-    })
-
-    .post(function(req,res){
-        var post = new Post();
-        post.text = req.body.text;
-        post.created_by = req.body.created_by;
-        post.save(function(err,post){
-           if(err){
-               console.log('Error: ' + err);
-               return res.send(500,err);
-           }
-            return res.json(post);
-        });
     });
 
-router.route('/posts/id')
+router.route('/posts/:id')
 
     .get(function(req,res){
         Post.findById(req.params.id, function(err, post){
@@ -57,14 +66,14 @@ router.route('/posts/id')
         Post.findById(req.params.id, function(err, post){
            if(err) res.send(err);
 
-           post.username = req.body.created_by;
+           post.created_by = req.body.created_by;
            post.text = req.body.text;
 
            post.save(function(err,post){
 
-               if(err)
-                   res.send(err);
-
+               if(err) {
+                   return res.send(err);
+               }
                res.json(post);
            });
         });
